@@ -33,6 +33,15 @@ const getClientSecret = () => {
 	return token
 }
 
+const getUserId = (token) => {
+	const parts = token.split('.')
+	try {
+		return JSON.parse(new Buffer(parts[1], 'base64').toString('ascii'))
+	} catch (e) {
+		return null
+	}
+}
+
 app.post('/callback', bodyParser.urlencoded({ extended: false }), (req, res) => {
 	const clientSecret = getClientSecret()
 	const requestBody = {
@@ -52,7 +61,8 @@ app.post('/callback', bodyParser.urlencoded({ extended: false }), (req, res) => 
 	}).then(response => {
 		return res.json({
 			success: true,
-			data: response.data
+			data: response.data,
+			user: getUserId(response.data.id_token)
 		})
 	}).catch(error => {
 		return res.status(500).json({
